@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自闭症评估测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* 全局低饱和柔和配色 */
+        body {
+            background-color: #f5f7fa;
+            color: #4a5568;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* 容器适配手机 */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 标题样式 */
+        .title {
+            text-align: center;
+            color: #3b4a63;
+            margin: 20px 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        /* 卡片布局核心 */
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e8edf2;
+        }
+
+        /* 基础信息卡片 */
+        .info-card input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d9e2;
+            border-radius: 10px;
+            margin: 10px 0 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .info-card input:focus {
+            border-color: #8ba6c9;
+        }
+
+        /* 保密协议 */
+        .privacy {
+            font-size: 14px;
+            color: #718096;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        /* 题目卡片 */
+        .question-card {
+            display: none;
+        }
+
+        .question-num {
+            color: #6b82a7;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #3b4a63;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        /* 双选项按钮 */
+        .options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background-color: #e8edf2;
+            color: #4a5568;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: #d4deec;
+        }
+
+        .option-btn.active {
+            background-color: #8ba6c9;
+            color: #fff;
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .prev-btn {
+            padding: 12px 20px;
+            border: 1px solid #d1d9e2;
+            border-radius: 10px;
+            background: #fff;
+            color: #4a5568;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #6b82a7;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* 结果卡片 */
+        .result-card {
+            display: none;
+            text-align: center;
+            padding: 35px 20px;
+        }
+
+        .result-title {
+            font-size: 20px;
+            color: #3b4a63;
+            margin-bottom: 20px;
+        }
+
+        .result-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6b82a7;
+            margin: 15px 0;
+        }
+
+        .result-desc {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .result-tip {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 20px;
+        }
+
+        /* 提示弹窗 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(59, 74, 99, 0.9);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 15px;
+            display: none;
+            z-index: 999;
+        }
+
+        /* 激活显示 */
+        .show {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">自闭症评估测试</h1>
+
+        <!-- 基础信息卡片 -->
+        <div class="card info-card" id="infoCard">
+            <p>请填写您的实际年龄：</p>
+            <input type="number" id="age" placeholder="请输入年龄" min="1" max="120">
+            <p class="privacy">📌 保密声明：本测试所有数据仅用于本地评估，不会上传、保存或泄露任何个人信息。</p>
+            <div class="btn-group">
+                <button class="option-btn" onclick="startTest()">开始测试</button>
+            </div>
+        </div>
+
+        <!-- 25道题目卡片（自动生成） -->
+        <div id="questionsBox"></div>
+
+        <!-- 结果展示卡片 -->
+        <div class="card result-card" id="resultCard">
+            <h2 class="result-title">评估完成</h2>
+            <p>您的年龄：<span id="showAge"></span> 岁</p>
+            <p class="result-score">自闭程度：<span id="levelText"></span></p>
+            <p class="result-desc" id="resultDesc"></p>
+            <p class="result-tip">⚠️ 本测试仅为初步评估，不代表医学诊断结果</p>
+        </div>
+
+        <!-- 提示弹窗 -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script>
+        // 25道测试题目（双选项）
+        const questions = [
+            { q: "不喜欢与人对视，经常回避眼神接触", a: "是", b: "否" },
+            { q: "对他人的情绪变化不敏感，难以察觉", a: "是", b: "否" },
+            { q: "喜欢独处，不愿意参与集体活动", a: "是", b: "否" },
+            { q: "语言表达能力较弱，沟通困难", a: "是", b: "否" },
+            { q: "重复固定的动作或行为模式", a: "是", b: "否" },
+            { q: "对陌生环境感到极度不安", a: "是", b: "否" },
+            { q: "不理解他人的玩笑或暗示", a: "是", b: "否" },
+            { q: "对特定物品有强烈的执着偏好", a: "是", b: "否" },
+            { q: "社交互动时表现僵硬、不自然", a: "是", b: "否" },
+            { q: "很少主动与他人交流、打招呼", a: "是", b: "否" },
+            { q: "听觉、触觉等感官反应异常", a: "是", b: "否" },
+            { q: "难以适应日常规律的改变", a: "是", b: "否" },
+            { q: "无法理解肢体语言和面部表情", a: "是", b: "否" },
+            { q: "兴趣范围狭窄且固定不变", a: "是", b: "否" },
+            { q: "别人叫自己名字时经常没有反应", a: "是", b: "否" },
+            { q: "不喜欢拥抱、牵手等身体接触", a: "是", b: "否" },
+            { q: "说话语气单调，缺乏情感变化", a: "是", b: "否" },
+            { q: "很难建立和维持友谊关系", a: "是", b: "否" },
+            { q: "对声音、光线等刺激过度敏感", a: "是", b: "否" },
+            { q: "不会主动分享自己的感受或物品", a: "是", b: "否" },
+            { q: "喜欢按照固定顺序做事，不能打乱", a: "是", b: "否" },
+            { q: "无法进行想象性游戏或角色扮演", a: "是", b: "否" },
+            { q: "在社交场合中感到焦虑、不知所措", a: "是", b: "否" },
+            { q: "模仿能力较弱，不会模仿他人行为", a: "是", b: "否" },
+            { q: "整体社交意愿较低， prefer 独自活动", a: "是", b: "否" }
+        ];
+
+        let currentQuestion = 0;
+        let answers = [];
+
+        // 自动生成25道题目DOM
+        window.onload = function () {
+            let box = document.getElementById('questionsBox');
+            questions.forEach((item, index) => {
+                let card = document.createElement('div');
+                card.className = 'card question-card';
+                card.id = `q${index}`;
+                card.innerHTML = `
+                    <p class="question-num">第 ${index + 1} 题 / 共25题</p>
+                    <p class="question-text">${item.q}</p>
+                    <div class="options">
+                        <button class="option-btn" onclick="selectAnswer(${index}, 1)">${item.a}</button>
+                        <button class="option-btn" onclick="selectAnswer(${index}, 0)">${item.b}</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="prev-btn" onclick="prevQuestion(${index})">上一题</button>
+                        <button class="submit-btn" onclick="showResult()">提交测试</button>
+                    </div>
+                `;
+                box.appendChild(card);
+            });
+        };
+
+        // 提示弹窗
+        function showToast(text) {
+            let t = document.getElementById('toast');
+            t.innerText = text;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        // 开始测试
+        function startTest() {
+            let age = document.getElementById('age').value;
+            if (!age || age < 1 || age > 120) {
+                showToast('请输入有效的年龄！');
+                return;
+            }
+            document.getElementById('infoCard').style.display = 'none';
+            document.getElementById('q0').classList.add('show');
+        }
+
+        // 选择答案 → 自动跳转到下一题
+        function selectAnswer(qIndex, score) {
+            answers[qIndex] = score;
+            // 清空按钮选中状态
+            let btns = document.querySelectorAll(`#q${qIndex} .option-btn`);
+            btns.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 延迟跳转，提升体验
+            setTimeout(() => {
+                if (qIndex < questions.length - 1) {
+                    document.getElementById(`q${qIndex}`).classList.remove('show');
+                    document.getElementById(`q${qIndex + 1}`).classList.add('show');
+                } else {
+                    // 最后一题显示提交按钮
+                    document.getElementById(`q${qIndex}`).querySelector('.submit-btn').style.display = 'block';
+                }
+            }, 300);
+        }
+
+        // 上一题
+        function prevQuestion(qIndex) {
+            if (qIndex === 0) return;
+            document.getElementById(`q${qIndex}`).classList.remove('show');
+            document.getElementById(`q${qIndex - 1}`).classList.add('show');
+        }
+
+        // 展示结果
+        function showResult() {
+            // 检查是否全部作答
+            if (answers.length !== questions.length || answers.includes(undefined)) {
+                showToast('请完成所有题目后提交！');
+                return;
+            }
+
+            let age = document.getElementById('age').value;
+            let total = answers.reduce((a, b) => a + b, 0);
+            let levelText, desc;
+
+            // 评分等级
+            if (total <= 5) {
+                levelText = "极低";
+                desc = "您的社交与沟通能力正常，无明显自闭倾向，心态积极，社交适应良好。";
+            } else if (total <= 10) {
+                levelText = "偏低";
+                desc = "存在轻微的社交内敛表现，无明显自闭特征，属于正常性格差异范围。";
+            } else if (total <= 15) {
+                levelText = "中等";
+                desc = "存在一定的社交沟通与行为刻板表现，建议多进行社交互动，关注心理状态。";
+            } else if (total <= 20) {
+                levelText = "偏高";
+                desc = "自闭相关特征较明显，建议寻求专业心理咨询或医疗机构进行进一步评估。";
+            } else {
+                levelText = "极高";
+                desc = "自闭特征非常显著，强烈建议尽快前往正规医院进行专业诊断与干预指导。";
+            }
+
+            // 填充结果
+            document.getElementById('showAge').innerText = age;
+            document.getElementById('levelText').innerText = levelText;
+            document.getElementById('resultDesc').innerText = desc;
+
+            // 显示结果
+            document.querySelectorAll('.question-card').forEach(c => c.classList.remove('show'));
+            document.getElementById('resultCard').classList.add('show');
+        }
+    </script>
+</body>
+</html>
